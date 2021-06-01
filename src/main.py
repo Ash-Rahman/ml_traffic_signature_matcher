@@ -16,6 +16,8 @@ from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 
 import tensorflow as tf
+from sklearn.utils import shuffle
+
 mnist = tf.keras.datasets.mnist
 from sklearn.preprocessing import LabelEncoder
 from tensorflow import keras
@@ -35,8 +37,8 @@ def main(self=None):
     #Monday-WorkingHours.pcap_ISCX.csv
     # flow_csv = pd.read_csv("../pcap\CIC-IDS-2017\labelled_flows\Wednesday-workingHours.pcap_ISCX.csv")
     # flow_csv_2 = pd.read_csv("../pcap\CIC-IDS-2017\labelled_flows/benign\Monday-WorkingHours.pcap_ISCX.csv")
-    # traffic_types = ['BENIGN', 'DoS slowloris', 'DoS Slowhttptest', 'DoS Hulk', 'DoS GoldenEye']
-    traffic_types = ['BENIGN', 'DoS slowloris']
+    traffic_types = ['BENIGN', 'DoS slowloris', 'DoS Slowhttptest', 'DoS Hulk', 'DoS GoldenEye']
+    # traffic_types = ['BENIGN', 'DoS slowloris']
     csv_file_names = [
                     "../pcap\CIC-IDS-2017\labelled_flows\Wednesday-workingHours.pcap_ISCX.csv",
                     "../pcap\CIC-IDS-2017\labelled_flows/benign\Monday-WorkingHours.pcap_ISCX.csv"
@@ -47,6 +49,12 @@ def main(self=None):
     data_x = data[0]
     labels = data[1]
     data_x = clean_data(data_x)
+
+    data_x, labels = shuffle(data_x, labels)
+
+    train_x, test_x, train_label, test_label = train_test_split(data_x, labels, test_size=0.15, random_state=10)
+
+    # data_x = tf.constant(data_x)
 
     # x_train, x_test, y_train, y_test = train_test_split(data_x, labels, test_size=0.33, random_state=101)
     #
@@ -79,17 +87,19 @@ def main(self=None):
         Dense(units=16, input_shape=(78, ), activation='relu'),
         Dense(units=32, activation='relu'),
         # Dense(units=2, activation='softmax')
-        Dense(units=2, activation='sigmoid')
+        Dense(units=5, activation='sigmoid')
 
     ])
     model.summary()
 
     model.compile(optimizer=Adam(learning_rate=0.0001), loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    model.fit(x=data_x, y=labels, batch_size=10, epochs=3, verbose=2)
-    predictions = model.predict(x=data_x, batch_size=10, verbose=0)
+    model.fit(x=train_x, y=train_label, validation_split=0.1, batch_size=10, epochs=3, shuffle=True, verbose=2)
+    model.evaluate(x=test_x, y=test_label, batch_size=10, verbose=2)
+
+    predictions = model.predict(x=train_x, batch_size=10, verbose=0)
 
     round_predictions = np.argmax(predictions, axis=-1)
-    cm = confusion_matrix(y_true=labels, y_pred=round_predictions)
+    cm = confusion_matrix(y_true=train_label, y_pred=round_predictions)
     plot_confusion_matrix(cm, traffic_types, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues)
 
     # benign_df = csv_df[csv_df[' Label'] == 'BENIGN']
