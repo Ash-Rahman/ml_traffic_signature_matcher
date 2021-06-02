@@ -22,7 +22,6 @@ def plot_confusion_matrix(cm, classes,
         print("Normalized confusion matrix")
     else:
         print('Confusion matrix, without normalization')
-
     print(cm)
 
     thresh = cm.max() / 2.
@@ -34,4 +33,22 @@ def plot_confusion_matrix(cm, classes,
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
+    plt.show()
+
+def plot_model_epoch_history(model_history):
+    # plot model accuracy
+    plt.plot(model_history.history['accuracy'])
+    plt.plot(model_history.history['val_accuracy'], '--')
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['training set', 'validation set'])
+    plt.show()
+    # plot model loss
+    plt.plot(model_history.history['loss'])
+    plt.plot(model_history.history['val_loss'], '--')
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['training set', 'validation set'])
     plt.show()
